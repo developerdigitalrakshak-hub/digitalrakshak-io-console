@@ -1,1 +1,9 @@
-{\n  "framework": "vite",\n  "rewrites": [\n    {\n      "source": "/(.*)",\n      "destination": "/index.html"\n    }\n  ]\n}
+{
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
