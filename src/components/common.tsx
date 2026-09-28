@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import {
   Activity, AlertTriangle, ArrowUpRight, BarChart3, BookOpen, Boxes,
   CircleHelp, Database, ExternalLink, FileCheck2, KeyRound, LayoutDashboard,
