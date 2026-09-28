@@ -261,10 +261,10 @@ export function ServicesPage() {
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+              className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer ${
                 selectedCategory === cat
-                  ? 'bg-[#243961] text-white shadow-sm'
-                  : 'text-[#64748b] hover:bg-[#f1f5f9] hover:text-[#243961]'
+                  ? 'bg-[#2a85ff] text-white shadow-2xs'
+                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
               }`}
             >
               {cat}
@@ -273,13 +273,13 @@ export function ServicesPage() {
         </div>
 
         <div className="relative min-w-[260px]">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-[#8a97aa]" />
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
           <input
             type="text"
             placeholder="Search APIs by name, endpoint..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="dr-input w-full pl-9 text-xs"
+            className="dr-input w-full pl-9 text-xs rounded-xl border border-gray-300 bg-white py-2"
           />
         </div>
       </div>
@@ -287,7 +287,7 @@ export function ServicesPage() {
       {/* Main Grid: Catalog List & Detail Studio */}
       <div className="grid gap-6 lg:grid-cols-[1fr_440px] xl:grid-cols-[1fr_480px]">
         {/* Left Column: API Catalog Grid */}
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-3.5 sm:grid-cols-2">
           {filteredApis.length === 0 ? (
             <div className="sm:col-span-2">
               <Empty icon={Boxes} title="No matching APIs found" copy="Try adjusting your search or category filters." />
@@ -297,27 +297,27 @@ export function ServicesPage() {
               <button
                 key={api.slug}
                 onClick={() => setActiveSlug(api.slug)}
-                className={`group text-left dr-card dr-shadow p-5 transition-all hover:-translate-y-0.5 ${
-                  activeSlug === api.slug ? 'ring-2 ring-[#f2c46b] border-[#243961]' : ''
+                className={`group text-left dr-card dr-shadow p-5 transition-all hover:-translate-y-0.5 cursor-pointer bg-white border rounded-2xl ${
+                  activeSlug === api.slug ? 'ring-2 ring-[#2a85ff] border-[#2a85ff]' : 'border-gray-200 hover:border-gray-300'
                 }`}
               >
                 <div className="flex items-start justify-between">
-                  <div className="grid h-9 w-9 place-items-center rounded-lg bg-[#eaf0f8] text-[#3b5984]">
+                  <div className="grid h-9 w-9 place-items-center rounded-xl bg-blue-50 text-[#2a85ff]">
                     <FileCheck2 className="h-4.5 w-4.5" />
                   </div>
                   <Status tone={api.status === 'active' ? 'success' : 'neutral'}>{api.status}</Status>
                 </div>
 
-                <p className="mt-4 text-[10px] font-bold uppercase tracking-[.08em] text-[#b68429]">{api.category}</p>
-                <h3 className="mt-1 text-sm font-bold text-[#233352] group-hover:text-[#243961]">{api.name}</h3>
-                <p className="mt-1.5 min-h-[40px] text-[11px] leading-5 text-[#738297] line-clamp-2">{api.description}</p>
+                <p className="mt-4 text-[10px] font-bold uppercase tracking-wider text-[#2a85ff]">{api.category}</p>
+                <h3 className="mt-1 text-sm font-bold text-gray-900 group-hover:text-[#2a85ff] transition-colors">{api.name}</h3>
+                <p className="mt-1.5 min-h-[40px] text-xs leading-relaxed text-gray-500 line-clamp-2">{api.description}</p>
 
-                <div className="mt-4 flex items-center justify-between border-t border-[#edf0f4] pt-3">
+                <div className="mt-4 flex items-center justify-between border-t border-gray-100 pt-3">
                   <div className="flex items-center gap-2">
-                    <span className="rounded bg-[#dfe8f5] px-1.5 py-0.5 dr-mono text-[9px] font-bold text-[#47648f]">{api.method}</span>
-                    <span className="dr-mono text-[10px] text-[#718096]">{money(api.price)} / check</span>
+                    <span className="rounded-md bg-gray-100 px-2 py-0.5 dr-mono text-[9px] font-bold text-gray-600">{api.method}</span>
+                    <span className="dr-mono text-xs font-bold text-gray-700">{money(api.price)} / check</span>
                   </div>
-                  <ChevronRight className="h-4 w-4 text-[#aab4c2] transition-transform group-hover:translate-x-1" />
+                  <ChevronRight className="h-4 w-4 text-gray-400 transition-transform group-hover:translate-x-1" />
                 </div>
               </button>
             ))

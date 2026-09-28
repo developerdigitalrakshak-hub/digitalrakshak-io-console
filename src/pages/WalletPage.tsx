@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   ArrowDownLeft, ArrowUpRight, CreditCard, Plus, Receipt, ShieldCheck,
-  Zap, Filter, RefreshCw, Layers, CheckCircle2, AlertCircle
+  Zap, Filter, RefreshCw, Layers, CheckCircle2, AlertCircle, X
 } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import {
@@ -150,34 +150,36 @@ export function WalletPage({ tab = 'wallet' }: WalletPageProps) {
             }}>
               Refresh
             </Btn>
-            <Btn icon={<Plus className="h-3.5 w-3.5" />} onClick={() => setShowTopup(v => !v)}>
+            <Btn variant="primary" icon={<Plus className="h-3.5 w-3.5" />} onClick={() => setShowTopup(v => !v)}>
               Add Money
             </Btn>
           </div>
         }
       />
 
-      {/* Top-up Drawer / Form */}
+      {/* Top-up Drawer / Form Modal */}
       {showTopup && (
-        <div className="dr-card dr-shadow mb-6 border-2 border-[#243961]/30 bg-[#fbfcfd] p-6 transition-all">
-          <div className="flex items-center justify-between border-b border-[#e2e8f0] pb-3 mb-4">
-            <div className="flex items-center gap-2">
-              <div className="grid h-7 w-7 place-items-center rounded-md bg-[#243961] text-[#f7bd57]">
+        <div className="dr-card dr-shadow mb-6 border border-[#2a85ff]/30 bg-white p-6 transition-all rounded-2xl">
+          <div className="flex items-center justify-between border-b border-gray-100 pb-3 mb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="grid h-8 w-8 place-items-center rounded-xl bg-blue-50 text-[#2a85ff]">
                 <Plus className="h-4 w-4" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-[#1e2b4f]">Add Money to API Wallet</h3>
-                <p className="text-[11px] text-[#64748b]">Instant credit via Razorpay. Backend authoritative signature verification.</p>
+                <h3 className="text-base font-bold text-gray-900">Add Money to API Wallet</h3>
+                <p className="text-xs text-gray-500">Instant credit via Razorpay with backend authoritative signature verification.</p>
               </div>
             </div>
-            <button onClick={() => setShowTopup(false)} className="text-[#94a3b8] hover:text-[#1e2b4f]">✕</button>
+            <button onClick={() => setShowTopup(false)} className="text-gray-400 hover:text-gray-900 p-1 rounded-lg">
+              <X className="h-4 w-4" />
+            </button>
           </div>
 
           <div className="flex flex-wrap items-end gap-4">
             <label className="w-full sm:w-64">
-              <span className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-[#53627a]">Enter Amount (INR)</span>
+              <span className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-gray-500">Enter Amount (INR)</span>
               <div className="relative">
-                <span className="absolute left-3 top-2.5 text-sm font-bold text-[#8c98a8]">₹</span>
+                <span className="absolute left-3.5 top-2.5 text-sm font-bold text-gray-400">₹</span>
                 <input
                   type="number"
                   min="10"
@@ -185,7 +187,7 @@ export function WalletPage({ tab = 'wallet' }: WalletPageProps) {
                   value={amount}
                   onChange={e => setAmount(e.target.value)}
                   data-testid="input-topup-amount"
-                  className="h-10 w-full rounded-lg border border-[#d6dfe9] bg-white pl-7 pr-3 text-sm font-bold text-[#1e2b4f] outline-none focus:border-[#243961] focus:ring-1 focus:ring-[#243961]"
+                  className="h-10 w-full rounded-xl border border-gray-300 bg-white pl-8 pr-3 text-sm font-bold text-gray-900 outline-none focus:border-[#2a85ff] focus:ring-1 focus:ring-[#2a85ff]"
                 />
               </div>
             </label>
@@ -197,7 +199,7 @@ export function WalletPage({ tab = 'wallet' }: WalletPageProps) {
               <Btn variant="outline" onClick={() => setAmount('5000')}>₹5,000</Btn>
               <Btn variant="outline" onClick={() => setAmount('10000')}>₹10,000</Btn>
               
-              <Btn onClick={submitTopup} disabled={topup.isPending || isProcessing} className="bg-[#243961] text-white hover:bg-[#1c2e51] px-5">
+              <Btn onClick={submitTopup} disabled={topup.isPending || isProcessing} variant="primary" className="px-5">
                 {topup.isPending || isProcessing ? 'Connecting to Razorpay…' : 'Continue to Payment'}
               </Btn>
             </div>
@@ -221,37 +223,36 @@ export function WalletPage({ tab = 'wallet' }: WalletPageProps) {
           {/* Main Wallet & Financial Metrics */}
           <div className="grid gap-4 md:grid-cols-3">
             {/* Authoritative Current Balance Card */}
-            <div className="dr-card dr-shadow relative overflow-hidden bg-gradient-to-br from-[#1e2b4f] to-[#243961] p-6 text-white">
-              <div className="absolute -right-8 -top-10 h-36 w-36 rounded-full border-[22px] border-[#f7bd57]/20" />
+            <div className="dr-card dr-shadow relative overflow-hidden bg-white border border-gray-200 p-6 rounded-2xl">
               <div className="flex items-center justify-between">
-                <p className="dr-label text-[#a9bad5]">Current Balance</p>
-                <span className="rounded-md bg-[#f7bd57]/20 px-2 py-0.5 text-[10px] font-bold text-[#f7bd57]">
+                <p className="dr-label text-[#2a85ff] font-bold">Current Balance</p>
+                <span className="rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-[#2a85ff] border border-blue-100">
                   Backend Authoritative
                 </span>
               </div>
-              <p className="mt-3 text-3xl font-bold tracking-[-.05em]" data-testid="text-wallet-balance">
+              <p className="mt-3 text-3xl font-bold tracking-tight text-gray-900" data-testid="text-wallet-balance">
                 {money(w?.balance)}
               </p>
-              <div className="mt-3 flex items-center justify-between text-[11px] text-[#b3c3dd]">
+              <div className="mt-3 flex items-center justify-between text-xs text-gray-500 font-medium">
                 <span>Threshold: {money(w?.lowBalanceThreshold ?? 2000)}</span>
                 {w?.balance && w.balance < (w?.lowBalanceThreshold ?? 2000) ? (
-                  <span className="flex items-center gap-1 font-semibold text-[#f87171]">
+                  <span className="flex items-center gap-1 font-bold text-amber-600">
                     <AlertCircle className="h-3.5 w-3.5" /> Low Balance
                   </span>
                 ) : (
-                  <span className="flex items-center gap-1 font-semibold text-[#4ade80]">
+                  <span className="flex items-center gap-1 font-bold text-emerald-600">
                     <CheckCircle2 className="h-3.5 w-3.5" /> Active
                   </span>
                 )}
               </div>
-              <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between">
+              <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between">
                 <button
                   onClick={() => setShowTopup(true)}
-                  className="text-xs font-bold text-[#f7bd57] hover:underline flex items-center gap-1"
+                  className="text-xs font-bold text-[#2a85ff] hover:text-[#0069f6] flex items-center gap-1 cursor-pointer"
                 >
                   <Plus className="h-3.5 w-3.5" /> Add Money Now
                 </button>
-                <span className="text-[10px] text-[#8fa2c4]">Currency: {w?.currency ?? 'INR'}</span>
+                <span className="text-[10px] text-gray-400 font-medium">Currency: {w?.currency ?? 'INR'}</span>
               </div>
             </div>
 
@@ -271,19 +272,19 @@ export function WalletPage({ tab = 'wallet' }: WalletPageProps) {
             />
           </div>
 
-          {/* API Consumption Rates Section (Configured by Backend) */}
-          <div className="dr-card dr-shadow mt-6 p-5">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e6eaf0] pb-4">
+          {/* API Consumption Rates Section */}
+          <div className="dr-card dr-shadow mt-6 p-6 bg-white border border-gray-200 rounded-2xl">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 pb-4">
               <div>
-                <h3 className="text-sm font-bold text-[#2d3f5e] flex items-center gap-2">
-                  <Zap className="h-4 w-4 text-[#e0a43d]" />
+                <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                  <Zap className="h-4 w-4 text-[#2a85ff]" />
                   API Usage Charges & Pricing Rates
                 </h3>
-                <p className="mt-0.5 text-[11px] text-[#8c97a7]">
+                <p className="mt-0.5 text-xs text-gray-500">
                   Backend-configured per-verification deduction rates for your account workspace.
                 </p>
               </div>
-              <span className="dr-label text-[#8793a4] text-[10px]">
+              <span className="rounded-lg bg-gray-100 px-2.5 py-1 dr-mono text-[10px] font-semibold text-gray-600">
                 Live Rate Card
               </span>
             </div>
@@ -291,19 +292,19 @@ export function WalletPage({ tab = 'wallet' }: WalletPageProps) {
             {services.isLoading ? (
               <div className="py-4"><LoadingRows count={2} /></div>
             ) : apiServices.length === 0 ? (
-              <div className="py-4 text-xs text-[#64748b]">No active pricing rates returned from backend.</div>
+              <div className="py-4 text-xs text-gray-500">No active pricing rates returned from backend.</div>
             ) : (
               <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 {apiServices.map((svc) => (
-                  <div key={svc.slug} className="rounded-xl border border-[#e2e8f0] bg-[#fafbfd] p-3.5 hover:border-[#b4c0d2] transition-colors">
+                  <div key={svc.slug} className="rounded-xl border border-gray-200 bg-gray-50/50 p-4 hover:bg-white hover:border-[#2a85ff] transition-colors">
                     <div className="flex items-center justify-between">
-                      <span className="dr-label text-[#b68429] text-[9px]">{svc.category}</span>
+                      <span className="dr-label text-[#2a85ff] text-[9px] font-bold">{svc.category}</span>
                       <Status tone={svc.status === 'active' ? 'success' : 'neutral'}>{svc.status}</Status>
                     </div>
-                    <p className="mt-2 text-xs font-bold text-[#1e2b4f] truncate">{svc.name}</p>
-                    <div className="mt-2 flex items-baseline justify-between border-t border-[#edf0f4] pt-2">
-                      <span className="text-[10px] text-[#78879c]">Per-check rate</span>
-                      <span className="dr-mono text-sm font-bold text-[#243961]">{money(svc.price)}</span>
+                    <p className="mt-2 text-xs font-bold text-gray-900 truncate">{svc.name}</p>
+                    <div className="mt-2 flex items-baseline justify-between border-t border-gray-100 pt-2">
+                      <span className="text-[10px] text-gray-400 font-medium">Per-check rate</span>
+                      <span className="dr-mono text-sm font-bold text-[#2a85ff]">{money(svc.price)}</span>
                     </div>
                   </div>
                 ))}
@@ -312,53 +313,53 @@ export function WalletPage({ tab = 'wallet' }: WalletPageProps) {
           </div>
 
           {/* Wallet Ledger & Transaction Log */}
-          <div className="dr-card dr-shadow mt-6 overflow-hidden w-full">
-            <div className="flex flex-wrap items-center justify-between border-b border-[#e6eaf0] px-5 py-4 gap-3">
+          <div className="dr-card dr-shadow mt-6 overflow-hidden w-full bg-white border border-gray-200 rounded-2xl">
+            <div className="flex flex-wrap items-center justify-between border-b border-gray-100 px-6 py-4 gap-3">
               <div>
-                <p className="text-sm font-bold text-[#2d3f5e]">Wallet Financial Ledger</p>
-                <p className="mt-0.5 text-[11px] text-[#8c97a7]">
+                <p className="text-base font-bold text-gray-900">Wallet Financial Ledger</p>
+                <p className="mt-0.5 text-xs text-gray-500">
                   All debits, top-up credits, refunds and admin adjustments.
                 </p>
               </div>
 
               {/* Filter Tabs */}
-              <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-[#e0e5ec] bg-[#f8fafc] p-1">
+              <div className="flex flex-wrap items-center gap-1.5 rounded-xl border border-gray-200 bg-gray-50 p-1">
                 <button
                   onClick={() => setFilterType('all')}
-                  className={`rounded-md px-2.5 py-1 text-[11px] font-bold transition-colors ${
-                    filterType === 'all' ? 'bg-[#243961] text-white shadow-sm' : 'text-[#64748b] hover:text-[#1e2b4f]'
+                  className={`rounded-lg px-3 py-1 text-xs font-bold transition-colors cursor-pointer ${
+                    filterType === 'all' ? 'bg-[#2a85ff] text-white shadow-2xs' : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
                   All ({rawRows.length})
                 </button>
                 <button
                   onClick={() => setFilterType('debit')}
-                  className={`rounded-md px-2.5 py-1 text-[11px] font-bold transition-colors ${
-                    filterType === 'debit' ? 'bg-[#243961] text-white shadow-sm' : 'text-[#64748b] hover:text-[#1e2b4f]'
+                  className={`rounded-lg px-3 py-1 text-xs font-bold transition-colors cursor-pointer ${
+                    filterType === 'debit' ? 'bg-[#2a85ff] text-white shadow-2xs' : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
                   API Usage Charges
                 </button>
                 <button
                   onClick={() => setFilterType('credit')}
-                  className={`rounded-md px-2.5 py-1 text-[11px] font-bold transition-colors ${
-                    filterType === 'credit' ? 'bg-[#243961] text-white shadow-sm' : 'text-[#64748b] hover:text-[#1e2b4f]'
+                  className={`rounded-lg px-3 py-1 text-xs font-bold transition-colors cursor-pointer ${
+                    filterType === 'credit' ? 'bg-[#2a85ff] text-white shadow-2xs' : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
                   Top-ups & Credits
                 </button>
                 <button
                   onClick={() => setFilterType('refund')}
-                  className={`rounded-md px-2.5 py-1 text-[11px] font-bold transition-colors ${
-                    filterType === 'refund' ? 'bg-[#243961] text-white shadow-sm' : 'text-[#64748b] hover:text-[#1e2b4f]'
+                  className={`rounded-lg px-3 py-1 text-xs font-bold transition-colors cursor-pointer ${
+                    filterType === 'refund' ? 'bg-[#2a85ff] text-white shadow-2xs' : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
                   Refunds
                 </button>
                 <button
                   onClick={() => setFilterType('adjustment')}
-                  className={`rounded-md px-2.5 py-1 text-[11px] font-bold transition-colors ${
-                    filterType === 'adjustment' ? 'bg-[#243961] text-white shadow-sm' : 'text-[#64748b] hover:text-[#1e2b4f]'
+                  className={`rounded-lg px-3 py-1 text-xs font-bold transition-colors cursor-pointer ${
+                    filterType === 'adjustment' ? 'bg-[#2a85ff] text-white shadow-2xs' : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
                   Adjustments
@@ -385,39 +386,39 @@ export function WalletPage({ tab = 'wallet' }: WalletPageProps) {
             ) : (
               <div className="dr-scroll overflow-auto w-full">
                 <table className="w-full text-left">
-                  <thead className="bg-[#fafbfd]">
+                  <thead className="bg-gray-50 border-b border-gray-100">
                     <tr>
-                      <th className="px-5 py-3 dr-label text-[#8793a4]">Date</th>
-                      <th className="px-5 py-3 dr-label text-[#8793a4]">Reference</th>
-                      <th className="px-5 py-3 dr-label text-[#8793a4]">API / Description</th>
-                      <th className="px-5 py-3 dr-label text-[#8793a4]">Credit</th>
-                      <th className="px-5 py-3 dr-label text-[#8793a4]">Debit</th>
-                      <th className="px-5 py-3 dr-label text-[#8793a4]">Balance</th>
-                      <th className="px-5 py-3 dr-label text-[#8793a4]">Status</th>
+                      <th className="px-6 py-3.5 dr-label text-gray-500">Date</th>
+                      <th className="px-6 py-3.5 dr-label text-gray-500">Reference</th>
+                      <th className="px-6 py-3.5 dr-label text-gray-500">API / Description</th>
+                      <th className="px-6 py-3.5 dr-label text-gray-500">Credit</th>
+                      <th className="px-6 py-3.5 dr-label text-gray-500">Debit</th>
+                      <th className="px-6 py-3.5 dr-label text-gray-500">Balance</th>
+                      <th className="px-6 py-3.5 dr-label text-gray-500">Status</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-gray-100">
                     {rows.map(row => (
-                      <tr key={row.id} className="border-t border-[#edf0f4] hover:bg-[#fcfdfe]">
-                        <td className="px-5 py-3 text-[11px] text-[#7e8a9c] whitespace-nowrap">
+                      <tr key={row.id} className="hover:bg-gray-50/60 transition-colors">
+                        <td className="px-6 py-3.5 text-xs text-gray-500 font-medium whitespace-nowrap">
                           {date(row.createdAt || row.date)}
                         </td>
-                        <td className="px-5 py-3 dr-mono text-[10px] text-[#7e8a9c] whitespace-nowrap">
+                        <td className="px-6 py-3.5 dr-mono text-xs text-gray-500 font-medium whitespace-nowrap">
                           {row.reference ?? '—'}
                         </td>
-                        <td className="px-5 py-3 text-xs font-semibold text-[#334462]">
+                        <td className="px-6 py-3.5 text-xs font-bold text-gray-900">
                           {row.description}
                         </td>
-                        <td className="px-5 py-3 dr-mono text-xs font-bold text-[#23825f] whitespace-nowrap">
+                        <td className="px-6 py-3.5 dr-mono text-xs font-bold text-emerald-600 whitespace-nowrap">
                           {row.type === 'credit' ? `+${money(Math.abs(row.amount))}` : '—'}
                         </td>
-                        <td className="px-5 py-3 dr-mono text-xs font-bold text-[#bd554b] whitespace-nowrap">
+                        <td className="px-6 py-3.5 dr-mono text-xs font-bold text-rose-600 whitespace-nowrap">
                           {row.type === 'debit' ? `-${money(Math.abs(row.amount))}` : '—'}
                         </td>
-                        <td className="px-5 py-3 dr-mono text-[11px] font-semibold text-[#546580] whitespace-nowrap">
+                        <td className="px-6 py-3.5 dr-mono text-xs font-bold text-gray-700 whitespace-nowrap">
                           {money(row.balanceAfter ?? row.balance)}
                         </td>
-                        <td className="px-5 py-3 whitespace-nowrap">
+                        <td className="px-6 py-3.5 whitespace-nowrap">
                           <Status tone={row.status === 'completed' ? 'success' : row.status === 'pending' ? 'warning' : 'danger'}>
                             {row.status}
                           </Status>

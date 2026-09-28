@@ -141,43 +141,43 @@ export function WebhooksPage({ initialTab = 'webhooks' }: WebhooksPageProps) {
       />
 
       {/* Main Settings Section Nav Tabs */}
-      <div className="mb-6 flex flex-wrap items-center gap-2 border-b border-[#e2e8f0] pb-2">
+      <div className="mb-6 flex flex-wrap items-center gap-2 border-b border-gray-200 pb-3">
         <button
           onClick={() => setActiveTab('webhooks')}
-          className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-bold transition-all ${
-            activeTab === 'webhooks' ? 'bg-[#243961] text-white shadow-sm' : 'text-[#64748b] hover:bg-[#eef2f7] hover:text-[#1e2b4f]'
+          className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all cursor-pointer ${
+            activeTab === 'webhooks' ? 'bg-[#2a85ff] text-white shadow-2xs' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
           }`}
         >
           <WebhookIcon className="h-4 w-4" /> Webhooks & Delivery Logs
         </button>
         <button
           onClick={() => setActiveTab('profile')}
-          className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-bold transition-all ${
-            activeTab === 'profile' ? 'bg-[#243961] text-white shadow-sm' : 'text-[#64748b] hover:bg-[#eef2f7] hover:text-[#1e2b4f]'
+          className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all cursor-pointer ${
+            activeTab === 'profile' ? 'bg-[#2a85ff] text-white shadow-2xs' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
           }`}
         >
           <Building2 className="h-4 w-4" /> Company Profile
         </button>
         <button
           onClick={() => setActiveTab('config')}
-          className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-bold transition-all ${
-            activeTab === 'config' ? 'bg-[#243961] text-white shadow-sm' : 'text-[#64748b] hover:bg-[#eef2f7] hover:text-[#1e2b4f]'
+          className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all cursor-pointer ${
+            activeTab === 'config' ? 'bg-[#2a85ff] text-white shadow-2xs' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
           }`}
         >
           <Sliders className="h-4 w-4" /> API Configuration
         </button>
         <button
           onClick={() => setActiveTab('notifications')}
-          className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-bold transition-all ${
-            activeTab === 'notifications' ? 'bg-[#243961] text-white shadow-sm' : 'text-[#64748b] hover:bg-[#eef2f7] hover:text-[#1e2b4f]'
+          className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all cursor-pointer ${
+            activeTab === 'notifications' ? 'bg-[#2a85ff] text-white shadow-2xs' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
           }`}
         >
           <Bell className="h-4 w-4" /> Notifications
         </button>
         <button
           onClick={() => setActiveTab('security')}
-          className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-bold transition-all ${
-            activeTab === 'security' ? 'bg-[#243961] text-white shadow-sm' : 'text-[#64748b] hover:bg-[#eef2f7] hover:text-[#1e2b4f]'
+          className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all cursor-pointer ${
+            activeTab === 'security' ? 'bg-[#2a85ff] text-white shadow-2xs' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
           }`}
         >
           <Lock className="h-4 w-4" /> Security
