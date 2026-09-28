@@ -80,6 +80,7 @@ export interface Webhook {
   lastDelivery?: string | null;
   events: string[];
   deliveries: number;
+  createdAt?: string;
 }
 
 // --- Initial Mock Data State ---
@@ -101,7 +102,7 @@ const INITIAL_TRANSACTIONS: WalletTransaction[] = [
 ];
 
 const INITIAL_WEBHOOKS: Webhook[] = [
-  { id: 'wh_1', url: 'https://api.asterco.com/webhooks/digitalrakshak', status: 'active', secretHint: 'whsec_••••9f2a', lastDelivery: new Date(Date.now() - 1800000).toISOString(), events: ['verification.completed', 'verification.failed'], deliveries: 418 }
+  { id: 'wh_1', url: 'https://api.asterco.com/webhooks/digitalrakshak', status: 'active', secretHint: 'whsec_••••9f2a', lastDelivery: new Date(Date.now() - 1800000).toISOString(), events: ['verification.completed', 'verification.failed'], deliveries: 418, createdAt: new Date(Date.now() - 86400000 * 30).toISOString() }
 ];
 
 const INITIAL_LOGS: ApiLog[] = [
