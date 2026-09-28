@@ -176,13 +176,36 @@ export function useGetDashboardActivity() {
 export function useGetWallet() {
   return useQuery({
     queryKey: getGetWalletQueryKey(),
-    queryFn: async () => getStored('wallet', {
-      balance: 18420,
-      currency: 'INR',
-      lowBalanceThreshold: 2000,
-      totalPurchased: 150000,
-      totalSpent: 131580
-    })
+    queryFn: async () => {
+      try {
+        const token = localStorage.getItem('token') || localStorage.getItem('dr_token');
+        const res = await fetch('/api/v1/client/wallet', {
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.status && json.data) {
+            return {
+              balance: json.data.balance,
+              availableBalance: json.data.available_balance,
+              currency: json.data.currency || 'INR',
+              lowBalanceThreshold: json.data.low_balance_threshold || 2000,
+              totalPurchased: json.data.total_purchased,
+              totalSpent: json.data.total_spent,
+              status: json.data.status
+            };
+          }
+        }
+      } catch (e) {}
+
+      return getStored('wallet', {
+        balance: 18420,
+        currency: 'INR',
+        lowBalanceThreshold: 2000,
+        totalPurchased: 150000,
+        totalSpent: 131580
+      });
+    }
   });
 }
 
@@ -190,6 +213,32 @@ export function useListWalletTransactions(params?: { limit?: number }) {
   return useQuery({
     queryKey: getListWalletTransactionsQueryKey(params),
     queryFn: async () => {
+      try {
+        const token = localStorage.getItem('token') || localStorage.getItem('dr_token');
+        const query = params?.limit ? `?per_page=${params.limit}` : '';
+        const res = await fetch(`/api/v1/client/wallet/transactions${query}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
+        });
+        if (res.ok) {
+          const json = await res.json();
+          const items = json.data?.list || json.data?.items || json.data;
+          if (Array.isArray(items)) {
+            return items.map((tx: any) => ({
+              id: String(tx.id || tx.transaction_reference),
+              description: tx.description || 'Wallet Transaction',
+              reference: tx.transaction_reference || tx.razorpay_payment_id || '—',
+              date: tx.created_at,
+              createdAt: tx.created_at,
+              status: (tx.status || 'completed').toLowerCase(),
+              amount: Number(tx.amount || 0),
+              type: (tx.type || tx.direction || 'credit').toLowerCase() === 'credit' ? 'credit' : 'debit',
+              balance: Number(tx.balance_after || tx.balance || 0),
+              balanceAfter: Number(tx.balance_after || tx.balance || 0)
+            }));
+          }
+        }
+      } catch (e) {}
+
       const txs = getStored('transactions', INITIAL_TRANSACTIONS);
       return params?.limit ? txs.slice(0, params.limit) : txs;
     }
@@ -201,6 +250,25 @@ export function useCreateTopup() {
   return useMutation({
     mutationFn: async (payload: { data: { amount: number } }) => {
       const amount = payload.data.amount;
+      try {
+        const token = localStorage.getItem('token') || localStorage.getItem('dr_token');
+        const res = await fetch('/api/v1/client/wallet/topup/create', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {})
+          },
+          body: JSON.stringify({ amount })
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.status && json.data) {
+            return json.data;
+          }
+        }
+      } catch (e) {}
+
+      // Mock Fallback
       const currentWallet = getStored('wallet', { balance: 18420, currency: 'INR', lowBalanceThreshold: 2000, totalPurchased: 150000, totalSpent: 131580 });
       const newWallet = {
         ...currentWallet,
@@ -222,6 +290,59 @@ export function useCreateTopup() {
       };
       setStored('transactions', [newTx, ...txs]);
       return newTx;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: getGetWalletQueryKey() });
+      queryClient.invalidateQueries({ queryKey: getListWalletTransactionsQueryKey() });
+      queryClient.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() });
+    }
+  });
+}
+
+export function useVerifyTopup() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature?: string; reference?: string }) => {
+      const token = localStorage.getItem('token') || localStorage.getItem('dr_token');
+      const res = await fetch('/api/v1/client/wallet/topup/verify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || 'Payment verification failed.');
+      }
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: getGetWalletQueryKey() });
+      queryClient.invalidateQueries({ queryKey: getListWalletTransactionsQueryKey() });
+      queryClient.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() });
+    }
+  });
+}
+
+export function usePayOrderWithWallet() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: { orderId: number | string }) => {
+      const token = localStorage.getItem('token') || localStorage.getItem('dr_token');
+      const res = await fetch(`/api/v1/client/orders/${payload.orderId}/pay-with-wallet`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        }
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || 'Wallet payment failed.');
+      }
+      return await res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: getGetWalletQueryKey() });

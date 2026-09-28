@@ -3,34 +3,104 @@ import { ArrowDownLeft, ArrowUpRight, CreditCard, Plus } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   getGetWalletQueryKey, getListWalletTransactionsQueryKey,
-  useCreateTopup, useGetWallet, useListWalletTransactions
+  useCreateTopup, useVerifyTopup, useGetWallet, useListWalletTransactions
 } from '@workspace/api-client-react';
 import type { WalletTransaction } from '@workspace/api-client-react';
 import {
   Btn, Empty, LoadingRows, Metric, PageHeader, QueryError, Skeleton, Status, date, money
 } from '@/components/common';
 
+const loadRazorpayScript = (): Promise<boolean> => {
+  return new Promise((resolve) => {
+    if ((window as any).Razorpay) {
+      resolve(true);
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
+
 export function WalletPage() {
   const wallet = useGetWallet();
   const transactions = useListWalletTransactions({ limit: 20 });
   const topup = useCreateTopup();
+  const verifyTopup = useVerifyTopup();
   const client = useQueryClient();
   const [amount, setAmount] = useState('1000');
   const [showTopup, setShowTopup] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const w = wallet.data;
   const rows = (transactions.data ?? []) as WalletTransaction[];
 
-  const submit = () => topup.mutate(
-    { data: { amount: Number(amount) } },
-    {
-      onSuccess: () => {
-        setShowTopup(false);
-        client.invalidateQueries({ queryKey: getGetWalletQueryKey() });
-        client.invalidateQueries({ queryKey: getListWalletTransactionsQueryKey({ limit: 20 }) });
+  const submit = async () => {
+    const numAmount = Number(amount);
+    if (!numAmount || numAmount < 10) return;
+    setIsProcessing(true);
+
+    topup.mutate(
+      { data: { amount: numAmount } },
+      {
+        onSuccess: async (res: any) => {
+          if (res?.razorpay_order_id && res?.key) {
+            const scriptLoaded = await loadRazorpayScript();
+            if (scriptLoaded && (window as any).Razorpay) {
+              const options = {
+                key: res.key,
+                amount: res.amount_in_paise || numAmount * 100,
+                currency: res.currency || 'INR',
+                name: res.company_name || 'DigitalRakshak',
+                description: `Wallet Top-up (${res.reference || 'Credit'})`,
+                order_id: res.razorpay_order_id,
+                handler: (response: any) => {
+                  verifyTopup.mutate(
+                    {
+                      razorpay_order_id: response.razorpay_order_id,
+                      razorpay_payment_id: response.razorpay_payment_id,
+                      razorpay_signature: response.razorpay_signature,
+                      reference: res.reference
+                    },
+                    {
+                      onSuccess: () => {
+                        setShowTopup(false);
+                        setIsProcessing(false);
+                        client.invalidateQueries({ queryKey: getGetWalletQueryKey() });
+                        client.invalidateQueries({ queryKey: getListWalletTransactionsQueryKey({ limit: 20 }) });
+                      },
+                      onError: (err) => {
+                        alert(err.message || 'Top-up verification failed.');
+                        setIsProcessing(false);
+                      }
+                    }
+                  );
+                },
+                modal: {
+                  ondismiss: () => {
+                    setIsProcessing(false);
+                  }
+                }
+              };
+              const rzp = new (window as any).Razorpay(options);
+              rzp.open();
+              return;
+            }
+          }
+
+          setShowTopup(false);
+          setIsProcessing(false);
+          client.invalidateQueries({ queryKey: getGetWalletQueryKey() });
+          client.invalidateQueries({ queryKey: getListWalletTransactionsQueryKey({ limit: 20 }) });
+        },
+        onError: () => {
+          setIsProcessing(false);
+        }
       }
-    }
-  );
+    );
+  };
 
   return (
     <div className="dr-in w-full">
@@ -49,7 +119,7 @@ export function WalletPage() {
               <span className="absolute left-3 top-2.5 text-sm text-[#8c98a8]">₹</span>
               <input
                 type="number"
-                min="100"
+                min="10"
                 value={amount}
                 onChange={e => setAmount(e.target.value)}
                 data-testid="input-topup-amount"
@@ -57,10 +127,15 @@ export function WalletPage() {
               />
             </div>
           </label>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            <Btn variant="soft" onClick={() => setAmount('500')}>₹500</Btn>
             <Btn variant="soft" onClick={() => setAmount('1000')}>₹1,000</Btn>
+            <Btn variant="soft" onClick={() => setAmount('2500')}>₹2,500</Btn>
             <Btn variant="outline" onClick={() => setAmount('5000')}>₹5,000</Btn>
-            <Btn onClick={submit} disabled={topup.isPending}>{topup.isPending ? 'Processing…' : 'Confirm top-up'}</Btn>
+            <Btn variant="outline" onClick={() => setAmount('10000')}>₹10,000</Btn>
+            <Btn onClick={submit} disabled={topup.isPending || isProcessing}>
+              {topup.isPending || isProcessing ? 'Processing…' : 'Confirm top-up'}
+            </Btn>
           </div>
         </div>
       )}
