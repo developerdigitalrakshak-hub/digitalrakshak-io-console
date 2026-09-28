@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
 import {
   Activity, AlertTriangle, ArrowUpRight, BarChart3, BookOpen, Boxes,
   CircleHelp, Database, ExternalLink, FileCheck2, KeyRound, LayoutDashboard,
   Menu, PanelLeftClose, PanelLeftOpen, RefreshCw, Search, Settings2, ShieldCheck, WalletCards,
-  Webhook as WebhookIcon, X, ChevronLeft, ChevronRight
+  Webhook as WebhookIcon, X, ChevronLeft, ChevronRight, Receipt, ArrowRightLeft
 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 
@@ -90,12 +89,37 @@ export function QueryError({ retry }: { retry: () => void }) {
   );
 }
 
-export function PageHeader({ eyebrow, title, copy, actions }: { eyebrow: string; title: string; copy: string; actions?: React.ReactNode }) {
+export function PageHeader({
+  eyebrow, title, copy, actions, breadcrumbs
+}: {
+  eyebrow?: string;
+  title: string;
+  copy: string;
+  actions?: React.ReactNode;
+  breadcrumbs?: { label: string; href?: string }[];
+}) {
   return (
     <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
       <div>
-        <p className="dr-label text-[#b68429]">{eyebrow}</p>
-        <h1 className="mt-2 font-[family-name:var(--app-font-serif)] text-[28px] font-bold tracking-[-.05em] text-[#24314c] md:text-[34px]">{title}</h1>
+        {breadcrumbs && breadcrumbs.length > 0 ? (
+          <nav className="mb-2 flex items-center gap-1.5 text-xs text-[#8492a6]">
+            {breadcrumbs.map((crumb, idx) => (
+              <React.Fragment key={idx}>
+                {idx > 0 && <span className="text-[#c1c9d6]">/</span>}
+                {crumb.href ? (
+                  <Link href={crumb.href} className="hover:text-[#243961] font-medium transition-colors">
+                    {crumb.label}
+                  </Link>
+                ) : (
+                  <span className="font-semibold text-[#b68429]">{crumb.label}</span>
+                )}
+              </React.Fragment>
+            ))}
+          </nav>
+        ) : eyebrow ? (
+          <p className="dr-label text-[#b68429]">{eyebrow}</p>
+        ) : null}
+        <h1 className="mt-1 font-[family-name:var(--app-font-serif)] text-[28px] font-bold tracking-[-.05em] text-[#24314c] md:text-[34px]">{title}</h1>
         <p className="mt-2 max-w-2xl text-[13px] leading-5 text-[#7a8799]">{copy}</p>
       </div>
       {actions && <div className="flex items-center gap-2">{actions}</div>}
@@ -125,6 +149,8 @@ export const navItems = [
   { href: '/dashboard/keys', label: 'API keys', icon: KeyRound },
   { href: '/dashboard/services', label: 'Services', icon: Boxes },
   { href: '/dashboard/wallet', label: 'Wallet', icon: WalletCards },
+  { href: '/dashboard/billing', label: 'Billing', icon: Receipt },
+  { href: '/dashboard/transactions', label: 'Transactions', icon: ArrowRightLeft },
   { href: '/dashboard/usage', label: 'Usage & logs', icon: BarChart3 },
   { href: '/dashboard/requests', label: 'Requests', icon: FileCheck2 },
   { href: '/dashboard/webhooks', label: 'Webhooks', icon: WebhookIcon },

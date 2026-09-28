@@ -30,6 +30,10 @@ export interface ApiLog {
   responseTime: number;
   credits: number;
   createdAt: string;
+  environment?: 'production' | 'test';
+  amount?: number;
+  requestParams?: Record<string, any>;
+  responseBody?: Record<string, any>;
 }
 
 export interface VerificationRequest {
@@ -101,8 +105,76 @@ const INITIAL_WEBHOOKS: Webhook[] = [
 ];
 
 const INITIAL_LOGS: ApiLog[] = [
-  { requestId: 'vrq_7f2d91c8', service: 'PAN Verification', method: 'POST', endpoint: '/v1/verify/pan', status: '200 OK', responseTime: 184, credits: 1, createdAt: new Date(Date.now() - 300000).toISOString() },
-  { requestId: 'vrq_6e1c80b7', service: 'Bank Account', method: 'POST', endpoint: '/v1/verify/bank-account', status: '200 OK', responseTime: 310, credits: 2, createdAt: new Date(Date.now() - 1200000).toISOString() }
+  {
+    requestId: 'vrq_7f2d91c8',
+    service: 'PAN Verification',
+    method: 'POST',
+    endpoint: '/v1/verify/pan',
+    status: '200 OK',
+    responseTime: 184,
+    credits: 1,
+    amount: 2.50,
+    environment: 'production',
+    createdAt: new Date(Date.now() - 300000).toISOString(),
+    requestParams: { pan: 'ABCDE1234F', name: 'Aarav Mehta', dob: '1990-05-15' },
+    responseBody: { status: 'VALID', panStatus: 'EXISTING_OPERATIONAL', nameMatched: true, matchScore: 98 }
+  },
+  {
+    requestId: 'vrq_6e1c80b7',
+    service: 'Bank Account Penny Drop',
+    method: 'POST',
+    endpoint: '/v1/verify/bank-account',
+    status: '200 OK',
+    responseTime: 310,
+    credits: 2,
+    amount: 4.00,
+    environment: 'production',
+    createdAt: new Date(Date.now() - 1200000).toISOString(),
+    requestParams: { accountNumber: '91823746192837', ifsc: 'HDFC0001234', beneficiaryName: 'Priya Sharma' },
+    responseBody: { status: 'VERIFIED', accountActive: true, beneficiaryNameMatched: true, rrn: '329847192834' }
+  },
+  {
+    requestId: 'vrq_5d0a79a6',
+    service: 'Aadhaar OKYC',
+    method: 'POST',
+    endpoint: '/v1/verify/aadhaar',
+    status: '200 OK',
+    responseTime: 420,
+    credits: 1,
+    amount: 3.00,
+    environment: 'production',
+    createdAt: new Date(Date.now() - 3600000 * 3).toISOString(),
+    requestParams: { aadhaarNumber: '548291038472', otp: '782910' },
+    responseBody: { status: 'VERIFIED', addressMatched: true, state: 'Maharashtra', pincode: '400001' }
+  },
+  {
+    requestId: 'vrq_4c9b68f5',
+    service: 'GSTIN Search & Verify',
+    method: 'POST',
+    endpoint: '/v1/verify/gstin',
+    status: '400 Bad Request',
+    responseTime: 95,
+    credits: 0,
+    amount: 0.00,
+    environment: 'test',
+    createdAt: new Date(Date.now() - 3600000 * 6).toISOString(),
+    requestParams: { gstin: '27AAAAA0000A1Z5' },
+    responseBody: { error: 'INVALID_GSTIN_FORMAT', message: 'GSTIN checksum validation failed in test sandbox.' }
+  },
+  {
+    requestId: 'vrq_3b8a57e4',
+    service: 'PAN Verification',
+    method: 'POST',
+    endpoint: '/v1/verify/pan',
+    status: '200 OK',
+    responseTime: 165,
+    credits: 1,
+    amount: 2.50,
+    environment: 'test',
+    createdAt: new Date(Date.now() - 86400000).toISOString(),
+    requestParams: { pan: 'XYZPD9876Q', name: 'Rohan Verma' },
+    responseBody: { status: 'VALID', panStatus: 'EXISTING_OPERATIONAL', nameMatched: true, matchScore: 100 }
+  }
 ];
 
 const INITIAL_REQUESTS: VerificationRequest[] = [
@@ -352,6 +424,27 @@ export function usePayOrderWithWallet() {
   });
 }
 
+export function useGetPaymentOptions(orderId: number | string | null) {
+  return useQuery({
+    queryKey: ['order', orderId, 'payment-options'],
+    queryFn: async () => {
+      if (!orderId) return null;
+      try {
+        const token = localStorage.getItem('token') || localStorage.getItem('dr_token');
+        const res = await fetch(`/api/v1/client/orders/${orderId}/payment-options`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
+        });
+        if (res.ok) {
+          const json = await res.json();
+          return json.data;
+        }
+      } catch (e) {}
+      return null;
+    },
+    enabled: !!orderId
+  });
+}
+
 export function useListApiKeys() {
   return useQuery({
     queryKey: getListApiKeysQueryKey(),
@@ -393,9 +486,31 @@ export function useRevokeApiKey() {
   return useMutation({
     mutationFn: async (payload: { id: string }) => {
       const keys = getStored<ApiKey[]>('keys', INITIAL_KEYS);
-      const updated = keys.filter(k => k.id !== payload.id);
+      const updated = keys.map(k => k.id === payload.id ? { ...k, status: 'revoked' } : k);
       setStored('keys', updated);
       return { success: true };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: getListApiKeysQueryKey() });
+    }
+  });
+}
+
+export function useRegenerateApiKey() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: { id: string }) => {
+      const keys = getStored<ApiKey[]>('keys', INITIAL_KEYS);
+      const target = keys.find(k => k.id === payload.id);
+      if (!target) throw new Error('API key not found');
+      
+      const prefix = target.environment === 'production' ? 'dr_live_' : 'dr_test_';
+      const secret = `${prefix}${Math.random().toString(36).substring(2, 14)}${Math.random().toString(36).substring(2, 14)}`;
+      const maskedKey = `${prefix}••••${secret.slice(-4)}`;
+      
+      const updated = keys.map(k => k.id === payload.id ? { ...k, maskedKey, secret, createdAt: new Date().toISOString() } : k);
+      setStored('keys', updated);
+      return { ...target, secret, maskedKey };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: getListApiKeysQueryKey() });
@@ -470,10 +585,38 @@ export function useListVerificationRequests(params?: { limit?: number }) {
   });
 }
 
+export interface WebhookDeliveryLog {
+  id: string;
+  webhookId: string;
+  event: string;
+  timestamp: string;
+  status: 'delivered' | 'failed';
+  responseCode: number;
+  attempts: number;
+  durationMs: number;
+}
+
+const INITIAL_WEBHOOK_DELIVERIES: WebhookDeliveryLog[] = [
+  { id: 'del_101', webhookId: 'wh_1', event: 'verification.completed', timestamp: new Date(Date.now() - 1800000).toISOString(), status: 'delivered', responseCode: 200, attempts: 1, durationMs: 142 },
+  { id: 'del_100', webhookId: 'wh_1', event: 'verification.failed', timestamp: new Date(Date.now() - 3600000 * 5).toISOString(), status: 'delivered', responseCode: 200, attempts: 1, durationMs: 188 },
+  { id: 'del_099', webhookId: 'wh_1', event: 'wallet.low_balance', timestamp: new Date(Date.now() - 86400000).toISOString(), status: 'failed', responseCode: 504, attempts: 3, durationMs: 5000 },
+  { id: 'del_098', webhookId: 'wh_1', event: 'wallet.topup.success', timestamp: new Date(Date.now() - 86400000 * 2).toISOString(), status: 'delivered', responseCode: 200, attempts: 1, durationMs: 95 }
+];
+
 export function useListWebhooks() {
   return useQuery({
     queryKey: getListWebhooksQueryKey(),
     queryFn: async () => getStored('webhooks', INITIAL_WEBHOOKS)
+  });
+}
+
+export function useListWebhookDeliveries(webhookId?: string) {
+  return useQuery({
+    queryKey: ['webhooks', 'deliveries', webhookId],
+    queryFn: async () => {
+      const deliveries = getStored<WebhookDeliveryLog[]>('webhook_deliveries', INITIAL_WEBHOOK_DELIVERIES);
+      return webhookId ? deliveries.filter(d => d.webhookId === webhookId) : deliveries;
+    }
   });
 }
 
@@ -490,13 +633,94 @@ export function useCreateWebhook() {
         secretHint: `whsec_••••${Math.random().toString(36).substring(2, 6)}`,
         lastDelivery: null,
         events,
-        deliveries: 0
+        deliveries: 0,
+        createdAt: new Date().toISOString()
       };
       setStored('webhooks', [newHook, ...hooks]);
       return newHook;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: getListWebhooksQueryKey() });
+    }
+  });
+}
+
+export function useUpdateWebhook() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: { id: string; url: string; events: string[] }) => {
+      const hooks = getStored<Webhook[]>('webhooks', INITIAL_WEBHOOKS);
+      const updated = hooks.map(h => h.id === payload.id ? { ...h, url: payload.url, events: payload.events } : h);
+      setStored('webhooks', updated);
+      return { success: true };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: getListWebhooksQueryKey() });
+    }
+  });
+}
+
+export function useToggleWebhook() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: { id: string; status: 'active' | 'inactive' }) => {
+      const hooks = getStored<Webhook[]>('webhooks', INITIAL_WEBHOOKS);
+      const updated = hooks.map(h => h.id === payload.id ? { ...h, status: payload.status } : h);
+      setStored('webhooks', updated);
+      return { success: true };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: getListWebhooksQueryKey() });
+    }
+  });
+}
+
+export function useDeleteWebhook() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: { id: string }) => {
+      const hooks = getStored<Webhook[]>('webhooks', INITIAL_WEBHOOKS);
+      // ONLY delete endpoint config, NEVER delete historical webhook_deliveries
+      const updated = hooks.filter(h => h.id !== payload.id);
+      setStored('webhooks', updated);
+      return { success: true };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: getListWebhooksQueryKey() });
+    }
+  });
+}
+
+export function useSendTestWebhook() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: { webhookId: string }) => {
+      const deliveries = getStored<WebhookDeliveryLog[]>('webhook_deliveries', INITIAL_WEBHOOK_DELIVERIES);
+      const newDelivery: WebhookDeliveryLog = {
+        id: `del_${Date.now()}`,
+        webhookId: payload.webhookId,
+        event: 'verification.completed',
+        timestamp: new Date().toISOString(),
+        status: 'delivered',
+        responseCode: 200,
+        attempts: 1,
+        durationMs: Math.floor(Math.random() * 120) + 80
+      };
+      setStored('webhook_deliveries', [newDelivery, ...deliveries]);
+
+      // update last delivery on webhook
+      const hooks = getStored<Webhook[]>('webhooks', INITIAL_WEBHOOKS);
+      const updated = hooks.map(h => h.id === payload.webhookId ? {
+        ...h,
+        lastDelivery: newDelivery.timestamp,
+        deliveries: (h.deliveries || 0) + 1
+      } : h);
+      setStored('webhooks', updated);
+      return newDelivery;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: getListWebhooksQueryKey() });
+      queryClient.invalidateQueries({ queryKey: ['webhooks', 'deliveries'] });
     }
   });
 }

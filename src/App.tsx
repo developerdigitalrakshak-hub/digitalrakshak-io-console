@@ -38,13 +38,25 @@ function Router() {
         <Route path="/login" component={() => <AuthPage />} />
         <Route path="/register" component={() => <AuthPage register />} />
         <Route path="/dashboard" component={() => <DashboardRoute><OverviewPage /></DashboardRoute>} />
+        <Route path="/api-keys" component={() => <DashboardRoute><KeysPage /></DashboardRoute>} />
         <Route path="/dashboard/keys" component={() => <DashboardRoute><KeysPage /></DashboardRoute>} />
+        <Route path="/apis/:slug" component={() => <DashboardRoute><ServicesPage /></DashboardRoute>} />
+        <Route path="/apis" component={() => <DashboardRoute><ServicesPage /></DashboardRoute>} />
         <Route path="/dashboard/services/:slug" component={() => <DashboardRoute><ServicesPage /></DashboardRoute>} />
         <Route path="/dashboard/services" component={() => <DashboardRoute><ServicesPage /></DashboardRoute>} />
+        <Route path="/wallet" component={() => <DashboardRoute><WalletPage /></DashboardRoute>} />
         <Route path="/dashboard/wallet" component={() => <DashboardRoute><WalletPage /></DashboardRoute>} />
+        <Route path="/billing" component={() => <DashboardRoute><WalletPage tab="billing" /></DashboardRoute>} />
+        <Route path="/dashboard/billing" component={() => <DashboardRoute><WalletPage tab="billing" /></DashboardRoute>} />
+        <Route path="/transactions" component={() => <DashboardRoute><WalletPage tab="transactions" /></DashboardRoute>} />
+        <Route path="/dashboard/transactions" component={() => <DashboardRoute><WalletPage tab="transactions" /></DashboardRoute>} />
+        <Route path="/usage" component={() => <DashboardRoute><UsagePage /></DashboardRoute>} />
         <Route path="/dashboard/usage" component={() => <DashboardRoute><UsagePage /></DashboardRoute>} />
         <Route path="/dashboard/requests" component={() => <DashboardRoute><RequestsPage /></DashboardRoute>} />
+        <Route path="/webhooks" component={() => <DashboardRoute><WebhooksPage /></DashboardRoute>} />
         <Route path="/dashboard/webhooks" component={() => <DashboardRoute><WebhooksPage /></DashboardRoute>} />
+        <Route path="/settings" component={() => <DashboardRoute><WebhooksPage initialTab="settings" /></DashboardRoute>} />
+        <Route path="/dashboard/settings" component={() => <DashboardRoute><WebhooksPage initialTab="settings" /></DashboardRoute>} />
         <Route path="/dashboard/docs" component={() => <DashboardRoute><DocsPage /></DashboardRoute>} />
         <Route path="/admin" component={AdminPage} />
         <Route component={NotFound} />
