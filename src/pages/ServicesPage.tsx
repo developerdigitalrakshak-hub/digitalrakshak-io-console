@@ -217,6 +217,169 @@ const BACKEND_APIS: ApiCatalogItem[] = [
       },
       message: 'Address reverse geocoded.'
     }
+  },
+  {
+    slug: 'passport-verification',
+    name: 'Passport Verification',
+    category: 'Identity',
+    description: 'Real-time Ministry of External Affairs Indian passport validation against official passport database.',
+    method: 'POST',
+    endpoint: '/api/v1/client/protean/passport-verify',
+    price: 5.00,
+    status: 'active',
+    version: 'v1.0',
+    fields: [
+      { name: 'file_number', type: 'string', required: true, description: '12-character Passport file number' },
+      { name: 'dob', type: 'string', required: true, description: 'Date of Birth (YYYY-MM-DD)' }
+    ],
+    requestExample: { file_number: 'BOM0712345678', dob: '1995-05-15' },
+    responseExample: {
+      status: true,
+      data: {
+        file_number: 'BOM0712345678',
+        valid: true,
+        passport_status: 'ISSUED',
+        issue_date: '2020-01-15',
+        expiry_date: '2030-01-14',
+        reference_id: 'dr_pass_83109'
+      },
+      message: 'Passport verified successfully.'
+    }
+  },
+  {
+    slug: 'dl-verification',
+    name: 'Driving Licence Verification',
+    category: 'Identity',
+    description: 'Sarathi Parivahan transport registry driving licence status and class of vehicle verification.',
+    method: 'POST',
+    endpoint: '/api/v1/client/protean/dl-verify',
+    price: 4.00,
+    status: 'active',
+    version: 'v1.0',
+    fields: [
+      { name: 'dl_number', type: 'string', required: true, description: 'Driving Licence number (e.g. MH0120190012345)' },
+      { name: 'dob', type: 'string', required: true, description: 'Date of Birth (YYYY-MM-DD)' }
+    ],
+    requestExample: { dl_number: 'MH0120190012345', dob: '1990-01-01' },
+    responseExample: {
+      status: true,
+      data: {
+        dl_number: 'MH0120190012345',
+        name: 'Jane Doe',
+        cov: ['MCWG', 'LMV'],
+        valid_upto: '2035-12-31',
+        status: 'ACTIVE',
+        reference_id: 'dr_dl_29014'
+      },
+      message: 'Driving Licence verified successfully.'
+    }
+  },
+  {
+    slug: 'vehicle-rc-verification',
+    name: 'Vehicle RC Detailed Verification',
+    category: 'Asset',
+    description: 'Vahan database vehicle registration certificate lookup with owner, vehicle specs, and insurance status.',
+    method: 'POST',
+    endpoint: '/api/v1/client/protean/vehicle-rc',
+    price: 4.50,
+    status: 'active',
+    version: 'v1.0',
+    fields: [
+      { name: 'vehicle_number', type: 'string', required: true, description: 'Vehicle registration number (e.g. MH01AB1234)' }
+    ],
+    requestExample: { vehicle_number: 'MH01AB1234' },
+    responseExample: {
+      status: true,
+      data: {
+        rc_number: 'MH01AB1234',
+        owner_name: 'Jane Doe',
+        model: 'Honda City',
+        fuel_type: 'PETROL',
+        insurance_upto: '2027-05-20',
+        status: 'ACTIVE',
+        reference_id: 'dr_vrc_77192'
+      },
+      message: 'Vehicle RC verified successfully.'
+    }
+  },
+  {
+    slug: 'udyam-msme-verification',
+    name: 'Udyam / MSME Registration',
+    category: 'Business',
+    description: 'Verify Ministry of MSME enterprise registration number, classification, and manufacturing/services units.',
+    method: 'POST',
+    endpoint: '/api/v1/client/protean/udyam-verify',
+    price: 4.50,
+    status: 'active',
+    version: 'v1.0',
+    fields: [
+      { name: 'udyam_number', type: 'string', required: true, description: 'Udyam Registration Number (e.g. UDYAM-MH-01-0012345)' }
+    ],
+    requestExample: { udyam_number: 'UDYAM-MH-01-0012345' },
+    responseExample: {
+      status: true,
+      data: {
+        udyam_number: 'UDYAM-MH-01-0012345',
+        enterprise_name: 'TechCorp Solutions Pvt Ltd',
+        classification: 'Micro',
+        major_activity: 'Services',
+        state: 'Maharashtra',
+        reference_id: 'dr_udyam_55102'
+      },
+      message: 'Udyam registration verified successfully.'
+    }
+  },
+  {
+    slug: 'advanced-forgery-detection',
+    name: 'Document Forgery Detection',
+    category: 'Document',
+    description: 'Forensic AI analysis detecting digital tampering, image manipulations, and font irregularities.',
+    method: 'POST',
+    endpoint: '/api/v1/client/protean/advance-forgery',
+    price: 8.00,
+    status: 'active',
+    version: 'v1.0',
+    fields: [
+      { name: 'image_url', type: 'string', required: true, description: 'Publicly accessible URL of the document file/image' }
+    ],
+    requestExample: { image_url: 'https://example.com/docs/kyc_file.jpg' },
+    responseExample: {
+      status: true,
+      data: {
+        forgery_detected: false,
+        authenticity_score: 99.2,
+        anomalies: [],
+        reference_id: 'dr_forgery_40192'
+      },
+      message: 'Forgery analysis completed.'
+    }
+  },
+  {
+    slug: 'negative-due-diligence-aml',
+    name: 'AML Negative Due Diligence',
+    category: 'Risk',
+    description: 'Anti-Money Laundering, PEP, global sanctions watchlists, and adverse media screening check.',
+    method: 'POST',
+    endpoint: '/api/v1/client/protean/negative-due-diligence',
+    price: 12.00,
+    status: 'active',
+    version: 'v1.0',
+    fields: [
+      { name: 'name', type: 'string', required: true, description: 'Target person or entity full name' },
+      { name: 'type', type: 'string', required: false, description: 'individual or entity (default: individual)' }
+    ],
+    requestExample: { name: 'Jane Doe', type: 'individual' },
+    responseExample: {
+      status: true,
+      data: {
+        subject: 'Jane Doe',
+        aml_status: 'CLEAR',
+        pep_match: false,
+        sanctions_match: false,
+        reference_id: 'dr_ndd_99301'
+      },
+      message: 'Screening completed with no adverse findings.'
+    }
   }
 ];
 
@@ -228,7 +391,7 @@ export function ServicesPage() {
   const [activeTab, setActiveTab] = useState<'docs' | 'sandbox' | 'snippets'>('docs');
   const [codeLang, setCodeLang] = useState<'curl' | 'php' | 'javascript' | 'node' | 'python'>('curl');
 
-  const categories = ['All', 'Identity', 'Financial', 'Employment', 'Business', 'Location'];
+  const categories = ['All', 'Identity', 'Financial', 'Employment', 'Business', 'Asset', 'Document', 'Risk', 'Location'];
 
   const filteredApis = BACKEND_APIS.filter(api => {
     const matchesCategory = selectedCategory === 'All' || api.category === selectedCategory;
